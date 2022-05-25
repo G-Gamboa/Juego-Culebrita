@@ -1,7 +1,8 @@
 #Definimos las diferentes librerías que utilizaremos. 
-from re import purge
 import pygame
 import random
+
+from zmq import EVENT_ACCEPT_FAILED
 
 pygame.init()
 pygame.font.init()
@@ -14,16 +15,23 @@ class DISEÑO(pygame.sprite.Sprite):
     def variables(self):
         
         #-------------------COLORES
-        self.rojo=(255,0,0)
+        self.rojo_fuerte=(255,0,0)
+        self.rojo_claro=(207,100,79)
         self.blanco=(255,255,255)
         self.negro=(0,0,0)
         self.verde=(95,230,49)
 
         #-------------------IMÁGENES
         self.fondo=pygame.image.load("fondo.png")
+                #---Comida
         self.comida=pygame.image.load("comida.png").convert()
         self.comida.set_colorkey(self.blanco)
         self.rect=self.comida.get_rect()
+                #---Cabeza de la serpiente
+        self.cabeza=pygame.image.load("cabeza.png").convert()
+        self.cabeza.set_colorkey(self.blanco)
+        self.rect=self.cabeza.get_rect()
+
         #self.icono=pygame.image.load("icono.png")
 
         #-------------------FUENTES DE TEXTO
@@ -36,6 +44,8 @@ class DISEÑO(pygame.sprite.Sprite):
         self.cuadritos=50
         self.x=random.randrange(self.cuadritos,self.tamaño_pantalla[0]-self.cuadritos,self.cuadritos)
         self.y=random.randrange(self.cuadritos*2,self.tamaño_pantalla[1]-self.cuadritos,self.cuadritos)
+        self.angulo=90
+        self.direccion="arriba"
 
     def pantalla_de_juego(self):
 
@@ -53,7 +63,8 @@ class DISEÑO(pygame.sprite.Sprite):
 
         # Líneas verticales del área de juego.
         pygame.draw.line(self.pantalla,self.negro,(50,97),(50,604), grosor)
-        pygame.draw.line(self.pantalla,self.negro,(850,97),(850,604), grosor)       
+        pygame.draw.line(self.pantalla,self.negro,(850,97),(850,604), grosor)    
+ 
         
 class LOGICA(DISEÑO):
     def __init__(self):
@@ -62,6 +73,39 @@ class LOGICA(DISEÑO):
     def comida_aleatoria(self):
         self.x=random.randrange(self.cuadritos,self.tamaño_pantalla[0]-self.cuadritos,self.cuadritos)
         self.y=random.randrange(self.cuadritos*2,self.tamaño_pantalla[1]-self.cuadritos,self.cuadritos)
+
+    def cuerpo_serpiente(self):
+        self.culebra=pygame.draw.rect(self.pantalla,self.rojo_claro,(400,400,30,40),0,15)
+
+    def cambio_direccion(self):
+        if self.direccion=="abajo":
+            if self.angulo==0:
+                self.cabeza=pygame.transform.rotate(self.cabeza,-90)
+
+            elif self.angulo==180:
+                self.cabeza=pygame.transform.rotate(self.cabeza,90)
+
+        elif self.direccion=="arriba":
+            if self.angulo==0:
+                self.cabeza=pygame.transform.rotate(self.cabeza,90)
+
+            elif self.angulo==180:
+                self.cabeza=pygame.transform.rotate(self.cabeza,-90)
+
+        elif self.direccion=="izquierda":
+            if self.angulo==90:
+                self.cabeza=pygame.transform.rotate(self.cabeza,90)
+
+            elif self.angulo==270:
+                self.cabeza=pygame.transform.rotate(self.cabeza,-90)
+                
+        elif self.direccion=="derecha":
+            if self.angulo==270:
+                self.cabeza=pygame.transform.rotate(self.cabeza,90)
+
+            elif self.angulo==90:
+                self.cabeza=pygame.transform.rotate(self.cabeza,-90)
+
 
 class JUEGO_FINAL(LOGICA):
     def __init__(self):
@@ -76,7 +120,37 @@ class JUEGO_FINAL(LOGICA):
             if evento.type==pygame.KEYDOWN:
                 #SOLAMENTE EJEMPLO DE COMIDA ALEATORIA
                 if evento.key==pygame.K_DOWN:
-                    self.comida_aleatoria()
+                    self.direccion="abajo"
+                    self.cambio_direccion()
+                    if self.angulo==90:
+                        self.angulo=90
+                    else:
+                        self.angulo=270
+                    
+                if evento.key==pygame.K_UP:
+                    self.direccion="arriba"
+                    self.cambio_direccion()
+                    if self.angulo==270:
+                        self.angulo=270
+                    else:
+                        self.angulo=90
+
+                if evento.key==pygame.K_LEFT:
+                    self.direccion="izquierda"
+                    self.cambio_direccion()
+                    if self.angulo==0:
+                        self.angulo=0
+                    else:
+                        self.angulo=180
+
+                if evento.key==pygame.K_RIGHT:
+                    self.direccion="derecha"
+                    self.cambio_direccion()
+                    if self.angulo==180:
+                        self.angulo=180
+                    else:
+                        self.angulo=0
+
         self.marco()
 
     def juego_culebrita(self):
@@ -84,10 +158,11 @@ class JUEGO_FINAL(LOGICA):
         self.variables()
         while self.inicio:
             self.pantalla.blit(self.fondo,(0,0))
+            self.cuerpo_serpiente()
 
             self.eventos_general()
             self.pantalla.blit(self.comida,(self.x,self.y))
-            
+            self.pantalla.blit(self.cabeza,(400,350))
             #Actualizar pantalla
             pygame.display.flip()
 
@@ -97,6 +172,7 @@ pruebas.juego_culebrita()
 
 #-------------------COMENTARIOS------------------
 # Quitar la comida con la tecla de abajo, solo fue ejemplo
-# Pensar como colocar a la culebrita. 
+# Añadir movimiento a la culebrita
+# Pensar como colocar el cuaerpo de la culebrita y que la siga. 
 # Diseñar ícono para la pantalla de juego
 # Pensar en el menú.
