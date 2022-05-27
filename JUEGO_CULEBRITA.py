@@ -37,10 +37,11 @@ class DISEÑO():
         self.direccion="derecha"
         self.coorde_x_culebra=400
         self.coorde_y_culebra=350
-        self.velocidad_culebra=2
+        self.velocidad_culebra=3
         self.contador=0
         self.apoyo=0
-
+        self.fps=pygame.time.Clock()
+   
     def pantalla_de_juego(self):
 
         self.tamaño_pantalla=[900,650]
@@ -62,18 +63,18 @@ class DISEÑO():
 class SPRITES(DISEÑO,pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        pygame.sprite.Sprite.__init__(self)
 
     def sprites(self):
+        pygame.sprite.Sprite.__init__
                 #---Comida
         self.comida=pygame.image.load("comida.png").convert()
         self.comida.set_colorkey(self.blanco)
-        self.rect=self.comida.get_rect()
-
+        self.comidarect=self.comida.get_rect()
+        
                 #---Cabeza de la serpiente
         self.cabeza=pygame.image.load("cabeza.png").convert()
         self.cabeza.set_colorkey(self.blanco)
-        self.rect=self.cabeza.get_rect()
+        self.cabezarect=self.cabeza.get_rect()
 
                 #---Cuerpo de la serpiente
         self.cuerpo=pygame.image.load("cuerpo.png").convert()
@@ -154,7 +155,8 @@ class LOGICA(SPRITES):
             self.inicio=False
 
             #PUNTOS - NO FUNCIONA AL 100%
-        if self.coorde_x_culebra==self.x and self.coorde_y_culebra==self.y:
+        if self.coorde_x_culebra>=self.x-10 and self.coorde_x_culebra<=self.x+50 and self.coorde_y_culebra>=self.y-10 and self.coorde_y_culebra<=self.y+50:
+            self.comida_aleatoria()
             self.contador+=1
 
 class JUEGO_FINAL(LOGICA):
@@ -211,7 +213,9 @@ class JUEGO_FINAL(LOGICA):
         self.pantalla_de_juego()
         self.variables()
         self.sprites()
+        
         while self.inicio:
+            self.fps.tick(60)
             self.pantalla.blit(self.fondo,(0,0))
             self.cuerpo_serpiente()
     
@@ -226,13 +230,12 @@ class JUEGO_FINAL(LOGICA):
             comidacoor=self.fuente_textos.render("X: "+str(self.x)+" Y: "+str(self.y),1,self.negro)
             self.pantalla.blit(comidacoor,(500,5))
 
-
             #Coordenadas Serpiente Cabeza
             coorserp=self.fuente_textos.render("X: "+str(self.coorde_x_culebra)+" Y: "+str(self.coorde_y_culebra),1,self.negro)
             self.pantalla.blit(coorserp,(500,50))
 
             #----Detectar Colisiones
-            #if 
+
 
             #Actualizar pantalla
             pygame.display.flip()
@@ -242,8 +245,14 @@ pruebas.juego_culebrita()
 
 
 #-------------------COMENTARIOS------------------
-# Falta que cuente los puntos al momento de tocar la comida
-# Averiguar sobre las colisiones, ya que el método que uso no me deja
+# Por el momento el cuerpo se añade detrás de la cabeza, pero solamente en el eje X
+# Falta añadir que en el punto de giro todo el cuerpo lo siga
+# Pensar en como hacer que detecte que topó con su propio cuerpo. 
 # Pensar como colocar el cuaerpo de la culebrita y que la siga. 
 # Diseñar ícono para la pantalla de juego
 # Pensar en el menú.
+
+#----------------------IDEAS---------------------
+# Utilizar coordenadas (variables) diferente para el cuerpo, para que al momento de girar
+# sigan a la cabeza, que guarde en una variable los ejes (x,y) y que si las variables de cuerpo
+# se igualan cambien de dirección según el ángulo usado.
