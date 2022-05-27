@@ -39,6 +39,7 @@ class DISEÑO():
         self.coorde_y_culebra=350
         self.velocidad_culebra=2
         self.contador=0
+        self.apoyo=0
 
     def pantalla_de_juego(self):
 
@@ -95,8 +96,11 @@ class LOGICA(SPRITES):
 
     def cuerpo_serpiente(self):
         self.pantalla.blit(self.cabeza,(self.coorde_x_culebra,self.coorde_y_culebra))
-        self.pantalla.blit(self.cuerpo,(self.coorde_x_culebra-self.cuadritos,self.coorde_y_culebra))
-        self.pantalla.blit(self.cola,(self.coorde_x_culebra-self.cuadritos*2,self.coorde_y_culebra))
+        for cuerpos in range (self.contador):
+            self.apoyo=(self.cuadritos*cuerpos)+50
+            self.pantalla.blit(self.cuerpo,(self.coorde_x_culebra-self.apoyo,self.coorde_y_culebra))
+        apoyo2=self.apoyo+50
+        self.pantalla.blit(self.cola,(self.coorde_x_culebra-apoyo2,self.coorde_y_culebra))
 
     def cambio_direccion(self):
         #---Dependiendo del ángulo en el que se encuentre la serpiente así será su moviemiento
@@ -217,6 +221,15 @@ class JUEGO_FINAL(LOGICA):
             self.cuerpo_serpiente()
             contador=self.fuente_numeros.render("Puntos:  "+str(self.contador),1,self.negro)
             self.pantalla.blit(contador,(10,5))
+
+            #Coordenadas Comida
+            comidacoor=self.fuente_textos.render("X: "+str(self.x)+" Y: "+str(self.y),1,self.negro)
+            self.pantalla.blit(comidacoor,(500,5))
+
+
+            #Coordenadas Serpiente Cabeza
+            coorserp=self.fuente_textos.render("X: "+str(self.coorde_x_culebra)+" Y: "+str(self.coorde_y_culebra),1,self.negro)
+            self.pantalla.blit(coorserp,(500,50))
 
             #----Detectar Colisiones
             #if 
