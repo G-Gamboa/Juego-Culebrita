@@ -69,12 +69,17 @@ class SPRITES(DISEÑO,pygame.sprite.Sprite):
                 #---Comida
         self.comida=pygame.image.load("comida.png").convert()
         self.comida.set_colorkey(self.blanco)
-        self.comidarect=self.comida.get_rect()
+        self.rect=self.comida.get_rect()
         
                 #---Cabeza de la serpiente
         self.cabeza=pygame.image.load("cabeza.png").convert()
         self.cabeza.set_colorkey(self.blanco)
-        self.cabezarect=self.cabeza.get_rect()
+        self.rect=self.cabeza.get_rect()
+
+                #---Cabeza de la serpiente al morir
+        self.cabeza_fin=pygame.image.load("fin.png").convert()
+        self.cabeza_fin.set_colorkey(self.blanco)
+        self.rect=self.cabeza_fin.get_rect()
 
                 #---Cuerpo de la serpiente
         self.cuerpo=pygame.image.load("cuerpo.png").convert()
@@ -109,30 +114,40 @@ class LOGICA(SPRITES):
         if self.direccion=="abajo":
             if self.angulo==0:
                 self.cabeza=pygame.transform.rotate(self.cabeza,-90)
+                self.cabeza_fin=pygame.transform.rotate(self.cabeza_fin,-90)
 
             elif self.angulo==180:
                 self.cabeza=pygame.transform.rotate(self.cabeza,90)
+                self.cabeza_fin=pygame.transform.rotate(self.cabeza_fin,90)
 
         elif self.direccion=="arriba":
             if self.angulo==0:
                 self.cabeza=pygame.transform.rotate(self.cabeza,90)
+                self.cabeza_fin=pygame.transform.rotate(self.cabeza_fin,90)
 
             elif self.angulo==180:
                 self.cabeza=pygame.transform.rotate(self.cabeza,-90)
+                self.cabeza_fin=pygame.transform.rotate(self.cabeza_fin,-90)
+                self.cuerpo=pygame.transform.rotate(self.cuerpo,-90)
+
 
         elif self.direccion=="izquierda":
             if self.angulo==90:
                 self.cabeza=pygame.transform.rotate(self.cabeza,90)
+                self.cabeza_fin=pygame.transform.rotate(self.cabeza_fin,90)
 
             elif self.angulo==270:
                 self.cabeza=pygame.transform.rotate(self.cabeza,-90)
+                self.cabeza_fin=pygame.transform.rotate(self.cabeza_fin,-90)
                 
         elif self.direccion=="derecha":
             if self.angulo==270:
                 self.cabeza=pygame.transform.rotate(self.cabeza,90)
+                self.cabeza_fin=pygame.transform.rotate(self.cabeza_fin,90)
 
             elif self.angulo==90:
                 self.cabeza=pygame.transform.rotate(self.cabeza,-90)
+                self.cabeza_fin=pygame.transform.rotate(self.cabeza_fin,-90)
 
     def avance(self):
         #---Dependiendo del ángulo al que se dirija así será su desplazamiento
@@ -148,11 +163,13 @@ class LOGICA(SPRITES):
         elif self.angulo==90:
             self.coorde_y_culebra-=self.velocidad_culebra
 
+
+    def colisiones_puntos(self):
             #---Detecta las coordenadas de los bordes del área de juego.        
-        if self.coorde_x_culebra<50 or self.coorde_x_culebra>800:
-            self.inicio=False
-        if self.coorde_y_culebra<100 or self.coorde_y_culebra>550:
-            self.inicio=False
+        if self.coorde_x_culebra<50 or self.coorde_x_culebra>800 or self.coorde_y_culebra<100 or self.coorde_y_culebra>550:
+            self.pantalla.blit(self.cabeza_fin,(self.coorde_x_culebra,self.coorde_y_culebra))
+        else: 
+            self.avance()
 
             #PUNTOS - NO FUNCIONA AL 100%
         if self.coorde_x_culebra>=self.x-10 and self.coorde_x_culebra<=self.x+50 and self.coorde_y_culebra>=self.y-10 and self.coorde_y_culebra<=self.y+50:
@@ -172,6 +189,7 @@ class JUEGO_FINAL(LOGICA):
             if evento.type==pygame.KEYDOWN:
                 #SOLAMENTE EJEMPLO DE COMIDA ALEATORIA
                 if evento.key==pygame.K_DOWN:
+                    self.avance()
                     self.direccion="abajo"
                     self.cambio_direccion()
                     if self.angulo==90:
@@ -221,8 +239,8 @@ class JUEGO_FINAL(LOGICA):
     
             self.eventos_general()
             self.pantalla.blit(self.comida,(self.x,self.y))
-            self.avance()
             self.cuerpo_serpiente()
+            self.colisiones_puntos()
             contador=self.fuente_numeros.render("Puntos:  "+str(self.contador),1,self.negro)
             self.pantalla.blit(contador,(10,5))
 
