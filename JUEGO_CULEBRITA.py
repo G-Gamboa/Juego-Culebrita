@@ -37,10 +37,14 @@ class DISEÑO():
         self.direccion="derecha"
         self.coorde_x_culebra=400
         self.coorde_y_culebra=350
+        self.coorde_x_cuerpo=400
+        self.coorde_y_cuerpo=350
         self.velocidad_culebra=3
         self.contador=0
         self.apoyo=0
         self.fps=pygame.time.Clock()
+        self.pila_direcciones=[]
+        self.pila_angulos=[]
    
     def pantalla_de_juego(self):
 
@@ -101,12 +105,12 @@ class LOGICA(SPRITES):
         self.y=random.randrange(self.cuadritos*2,self.tamaño_pantalla[1]-self.cuadritos,self.cuadritos)
 
     def cuerpo_serpiente(self):
-        self.pantalla.blit(self.cabeza,(self.coorde_x_culebra,self.coorde_y_culebra))
         for cuerpos in range (self.contador):
             self.apoyo=(self.cuadritos*cuerpos)+50
-            self.pantalla.blit(self.cuerpo,(self.coorde_x_culebra-self.apoyo,self.coorde_y_culebra))
+            self.pantalla.blit(self.cuerpo,(self.coorde_x_cuerpo-self.apoyo,self.coorde_y_cuerpo))
         apoyo2=self.apoyo+50
         self.pantalla.blit(self.cola,(self.coorde_x_culebra-apoyo2,self.coorde_y_culebra))
+        
 
     def cambio_direccion(self):
         #---Dependiendo del ángulo en el que se encuentre la serpiente así será su moviemiento
@@ -128,8 +132,6 @@ class LOGICA(SPRITES):
             elif self.angulo==180:
                 self.cabeza=pygame.transform.rotate(self.cabeza,-90)
                 self.cabeza_fin=pygame.transform.rotate(self.cabeza_fin,-90)
-                self.cuerpo=pygame.transform.rotate(self.cuerpo,-90)
-
 
         elif self.direccion=="izquierda":
             if self.angulo==90:
@@ -149,19 +151,23 @@ class LOGICA(SPRITES):
                 self.cabeza=pygame.transform.rotate(self.cabeza,-90)
                 self.cabeza_fin=pygame.transform.rotate(self.cabeza_fin,-90)
 
-    def avance(self):
+    def avance_cabeza(self):
         #---Dependiendo del ángulo al que se dirija así será su desplazamiento
         if self.angulo==0:
             self.coorde_x_culebra+=self.velocidad_culebra
+            self.coorde_x_cuerpo+=self.velocidad_culebra
 
         elif self.angulo==180:
             self.coorde_x_culebra-=self.velocidad_culebra
+            self.coorde_x_cuerpo-=self.velocidad_culebra
 
         elif self.angulo==270:
             self.coorde_y_culebra+=self.velocidad_culebra
+            self.coorde_y_cuerpo+=self.velocidad_culebra
 
         elif self.angulo==90:
             self.coorde_y_culebra-=self.velocidad_culebra
+            self.coorde_y_cuerpo-=self.velocidad_culebra
 
 
     def colisiones_puntos(self):
@@ -169,12 +175,16 @@ class LOGICA(SPRITES):
         if self.coorde_x_culebra<50 or self.coorde_x_culebra>800 or self.coorde_y_culebra<100 or self.coorde_y_culebra>550:
             self.pantalla.blit(self.cabeza_fin,(self.coorde_x_culebra,self.coorde_y_culebra))
         else: 
-            self.avance()
+            self.avance_cabeza()
 
             #PUNTOS - NO FUNCIONA AL 100%
         if self.coorde_x_culebra>=self.x-10 and self.coorde_x_culebra<=self.x+50 and self.coorde_y_culebra>=self.y-10 and self.coorde_y_culebra<=self.y+50:
             self.comida_aleatoria()
             self.contador+=1
+
+    def guardar_direcciones(self,direc,ang):
+        self.pila_direcciones.append(direc)
+        self.pila_angulos.append(ang)
 
 class JUEGO_FINAL(LOGICA):
     def __init__(self):
@@ -189,15 +199,17 @@ class JUEGO_FINAL(LOGICA):
             if evento.type==pygame.KEYDOWN:
                 #SOLAMENTE EJEMPLO DE COMIDA ALEATORIA
                 if evento.key==pygame.K_DOWN:
-                    self.avance()
                     self.direccion="abajo"
                     self.cambio_direccion()
                     if self.angulo==90:
                         self.angulo=90
                     else:
                         self.angulo=270
-                    #self.coorde_y_culebra+=10
-                    
+                    apoyo3=[]
+                    apoyo3.append(self.coorde_x_culebra)
+                    apoyo3.append(self.coorde_y_culebra)
+                    self.guardar_direcciones(apoyo3,self.angulo)
+
                 if evento.key==pygame.K_UP:
                     self.direccion="arriba"
                     self.cambio_direccion()
@@ -205,7 +217,11 @@ class JUEGO_FINAL(LOGICA):
                         self.angulo=270
                     else:
                         self.angulo=90
-                    #self.coorde_y_culebra+=-10
+                    apoyo3=[]
+                    apoyo3.append(self.coorde_x_culebra)
+                    apoyo3.append(self.coorde_y_culebra)
+                    self.guardar_direcciones(apoyo3,self.angulo)
+
 
                 if evento.key==pygame.K_LEFT:
                     self.direccion="izquierda"
@@ -214,7 +230,10 @@ class JUEGO_FINAL(LOGICA):
                         self.angulo=0
                     else:
                         self.angulo=180
-                    #self.coorde_x_culebra+=-10
+                    apoyo3=[]
+                    apoyo3.append(self.coorde_x_culebra)
+                    apoyo3.append(self.coorde_y_culebra)
+                    self.guardar_direcciones(apoyo3,self.angulo)
 
                 if evento.key==pygame.K_RIGHT:
                     self.direccion="derecha"
@@ -223,7 +242,10 @@ class JUEGO_FINAL(LOGICA):
                         self.angulo=180
                     else:
                         self.angulo=0
-                    #self.coorde_x_culebra+=10
+                    apoyo3=[]
+                    apoyo3.append(self.coorde_x_culebra)
+                    apoyo3.append(self.coorde_y_culebra)
+                    self.guardar_direcciones(apoyo3,self.angulo)
 
         self.marco()
 
@@ -235,6 +257,7 @@ class JUEGO_FINAL(LOGICA):
         while self.inicio:
             self.fps.tick(60)
             self.pantalla.blit(self.fondo,(0,0))
+            self.pantalla.blit(self.cabeza,(self.coorde_x_culebra,self.coorde_y_culebra))
             self.cuerpo_serpiente()
     
             self.eventos_general()
@@ -257,6 +280,9 @@ class JUEGO_FINAL(LOGICA):
 
             #Actualizar pantalla
             pygame.display.flip()
+        print(self.pila_angulos)
+        for x in self.pila_direcciones:
+            print(x)
 
 pruebas=JUEGO_FINAL()
 pruebas.juego_culebrita()
