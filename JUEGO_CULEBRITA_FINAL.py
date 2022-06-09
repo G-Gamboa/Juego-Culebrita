@@ -1,4 +1,5 @@
 #Importamos las librerías que usaremos
+from ctypes.wintypes import WIN32_FIND_DATAA
 import pygame
 import random
 
@@ -21,6 +22,9 @@ class  DISEÑO():
         self.fuente_titulos=pygame.font.SysFont("Cooper",40)
         self.fuente_textos=pygame.font.SysFont("Arial",20)
 
+        # ----- IMAGENES
+        #self.fin=pygame.image.load("fin.png")
+
         # -----VARIABLES DE APOYO
         self.inicio=True
         self.ancho=600
@@ -36,11 +40,11 @@ class  DISEÑO():
         self.direccion=random.choice(['arriba','abajo','izquierda','derecha'])
         self.bordes=[]
 
-
     def pantalla_de_juego(self):
         self.tamaño_pantalla=[self.ancho,self.alto]
         self.pantalla=pygame.display.set_mode(self.tamaño_pantalla)
         pygame.display.set_caption("CULEBRITA")
+
 
     def fondo(self):
         self.pantalla.fill(self.celeste)
@@ -50,17 +54,18 @@ class  DISEÑO():
         x=y=30
         for z in range(alto):
             x+=self.espacios
-            if z==0 or z==alto-1:
-                self.bordes.append(pygame.draw.line(self.pantalla,self.negro,(x,48),(x,self.alto-37),grosor))
-            else:  
-                pygame.draw.line(self.pantalla,self.negro,(x,50),(x,self.alto-40))
+            pygame.draw.line(self.pantalla,self.negro,(x,50),(x,self.alto-40))
+        # Bordes de alto
+        self.bordes.append(pygame.draw.rect(self.pantalla,self.negro,[40,47,10,568]))
+        self.bordes.append(pygame.draw.rect(self.pantalla,self.negro,[550,47,10,568]))
         
         for z in range(ancho):
             y+=self.espacios
-            if z==0 or z==ancho-1:
-                self.bordes.append(pygame.draw.line(self.pantalla,self.negro,(48,y),(self.ancho-47,y),grosor))
-            else:  
-                pygame.draw.line(self.pantalla,self.negro,(50,y),(self.ancho-50,y))
+            pygame.draw.line(self.pantalla,self.negro,(50,y),(self.ancho-50,y))
+
+        # Bordes de ancho
+        self.bordes.append(pygame.draw.rect(self.pantalla,self.negro,[40,40,520,10]))
+        self.bordes.append(pygame.draw.rect(self.pantalla,self.negro,[40,610,520,10]))
 
 class LOGICA(DISEÑO):
     def __init__(self):
@@ -72,22 +77,22 @@ class LOGICA(DISEÑO):
         if self.direccion=="derecha":
             apoyo=self.cuerpo_serpiente[0][0]+self.velocidad
             self.nuevos_elementos(apoyo,"x")
-            self.tope_bordes(apoyo)
+            self.colisiones()
         
         if self.direccion=="izquierda":
             apoyo=self.cuerpo_serpiente[0][0]-self.velocidad
             self.nuevos_elementos(apoyo,"x")
-            self.tope_bordes(apoyo)
+            self.colisiones()
 
         if self.direccion=="abajo":
             apoyo=self.cuerpo_serpiente[0][1]+self.velocidad
             self.nuevos_elementos(apoyo,"y")
-            self.tope_bordes(apoyo)
+            self.colisiones()
 
         if self.direccion=="arriba":
             apoyo=self.cuerpo_serpiente[0][1]-self.velocidad
             self.nuevos_elementos(apoyo,"y")
-            self.tope_bordes(apoyo)
+            self.colisiones()
 
     def nuevos_elementos(self,val,eje):
 #--- Dependiendo de su eje inserta la nueva posición en el eje x o en el eje y
@@ -104,17 +109,45 @@ class LOGICA(DISEÑO):
     def serpiente_pantalla(self):
         for indice,cuerpo in enumerate(self.cuerpo_serpiente):
             if indice==0:
-                # --- El cuerpo es de color verde
-                pygame.draw.rect(self.pantalla,self.verde,[cuerpo[0],cuerpo[1],20,20])
+                # --- La cabeza es de color verde
+                self.cabeza=pygame.draw.rect(self.pantalla,self.verde,[cuerpo[0],cuerpo[1],20,20])
                 continue
-            # --- La cabeza es de color rojo
+            # --- El cuerpo es de color rojo
             pygame.draw.rect(self.pantalla,self.rojo_fuerte,[cuerpo[0],cuerpo[1],20,20])
 
 # --- Detecta si la cabeza ha topado con los bordes
-    def tope_bordes(self,tope):
-        if tope<self.espacios:
-            self.inicio=False 
-        pass
+    def colisiones(self):
+
+        colision1=pygame.Rect.colliderect(self.cabeza,self.bordes[0])
+        colision2=pygame.Rect.colliderect(self.cabeza,self.bordes[1])
+        colision3=pygame.Rect.colliderect(self.cabeza,self.bordes[2])
+        colision4=pygame.Rect.colliderect(self.cabeza,self.bordes[3])
+        colision_comida=pygame.Rect.colliderect(self.cabeza,self.comida)
+        
+        if self.cuerpo_serpiente[0] in self.cuerpo_serpiente[2:]:
+            puntos=self.fuente_numeros.render("SIUUUUUUU",True,self.negro)
+            self.pantalla.blit(puntos,(300,410))
+
+        if colision1 or colision2 or colision3 or colision4:
+            self.inicio=False
+        
+        if colision_comida:
+            self.puntos+=1
+            posiciones=[self.x,self.y]
+            self.cuerpo(posiciones)
+            self.coorde_aleatorias()
+
+# ---- Implementación de la comida
+    def coorde_aleatorias(self):
+        self.x=random.randrange(50,550,self.espacios)
+        self.y=random.randrange(50,610,self.espacios)
+
+    def comida_pantalla(self):
+        self.comida=pygame.draw.rect(self.pantalla,self.rojo_claro,[self.x,self.y,20,20])
+
+    def cuerpo(self,val):
+        self.cuerpo_serpiente.insert(0,val) 
+        self.serpiente_pantalla()
 
     def puntaje_pantalla(self):
         puntos=self.fuente_numeros.render("Puntos:"+str(self.puntos),True,self.negro)
@@ -157,15 +190,16 @@ class JUEGO_FINAL(LOGICA):
 
     def juego_culebrita(self):
         self.pantalla_de_juego()
+        self.coorde_aleatorias()
 
         while self.inicio:
             self.fps.tick(10)
             # area de dibujo
             self.eventos_general()
             self.fondo()
+            self.comida_pantalla()
             self.puntaje_pantalla()
             self.movimientos_serpiente()
-            self.puntos+=1
             
 
 
@@ -178,6 +212,7 @@ pruebas.juego_culebrita()
 
 
 #--------------- COMENTARIOS ------------------
-# Falta que detecte los bordes del área de juego
-# Falta colocar comida
 # Falta un menú de inicio
+# Falta que se quede estático al final cuando pierde
+# Falta un menú final donde pregunte si desea volver a jugar o no (pueden ser imágenes de pantalla completa)
+# Falta diseñar el ícono
