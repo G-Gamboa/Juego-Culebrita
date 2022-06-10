@@ -300,3 +300,7 @@ pruebas.juego_culebrita()
 # Utilizar coordenadas (variables) diferente para el cuerpo, para que al momento de girar
 # sigan a la cabeza, que guarde en una variable los ejes (x,y) y que si las variables de cuerpo
 # se igualan cambien de dirección según el ángulo usado.
+
+
+#----------------------REALIDAD------------------
+# No se pudo implementar que la cola siguiera a la cabeza.
